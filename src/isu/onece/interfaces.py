@@ -16,9 +16,16 @@ class IGroup(Interface):
     """Defines an interface of object that
     contains a group of similar objects.
     """
-    group = zope.schema.List(title=("Members"),
-                             unique=True
+    group = zope.schema.List(title=_N("Members"),
+                             description=_N("Group of objects"),
+                             unique=True,
+                             required=True
                              )
+    subgrouping = zope.schema.Bool(title=_N("Subgrouping"),
+                                   description=_N("Whether this group can "
+                                                  "have subgroups"),
+                                   required=True
+                                   )
 
 
 class IReferenceBook(IObject):
