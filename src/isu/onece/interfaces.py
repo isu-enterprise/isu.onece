@@ -28,13 +28,28 @@ class IGroup(Interface):
                                    )
 
 
-class IReferenceBook(IObject):
-    """A Reference Book interface that defines
+class ICatalog(IObject):
+    """A catalog interface that defines
     one default field -
     `name` - identifier of an item
+    FIXME: May be define an id???
     """
     name = zope.schema.TextLine(title=_N("Name"),
                                 description=_N("Name of an item of the "
-                                               "reference book"),
+                                               "catalog"),
                                 required=True,
                                 constraint=lambda x: x.strip())
+
+
+class IDocument(ICatalog):
+    """Interface describes documents identified
+    by a number in a sequence and an issue data.
+    """
+
+    number = zope.schema.TextLine(
+        title=_("Number")
+    )
+
+    data = zope.schema.Datetime(
+        title=_("Date")
+    )
