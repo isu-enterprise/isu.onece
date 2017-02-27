@@ -6,6 +6,9 @@ def _N(x):
     return x
 
 
+_ = _N
+
+
 class IObject(Interface):
     """This interface defines a root of 1C Enterprise like
     objects, e.g., Subsystems, Reference Books, Registers (Regystres) (?).
@@ -28,12 +31,15 @@ class IGroup(Interface):
                                    )
 
 
-class ICatalog(IObject):
+class ICatalogItem(IObject):
     """A catalog interface that defines
     one default field -
     `name` - identifier of an item
-    FIXME: May be define an id???
     """
+    id = zope.schema.Integer(
+        title=_("Code")
+    )
+
     name = zope.schema.TextLine(title=_N("Name"),
                                 description=_N("Name of an item of the "
                                                "catalog"),
@@ -41,7 +47,7 @@ class ICatalog(IObject):
                                 constraint=lambda x: x.strip())
 
 
-class IDocument(ICatalog):
+class IDocument(ICatalogItem):
     """Interface describes documents identified
     by a number in a sequence and an issue data.
     """
@@ -53,3 +59,7 @@ class IDocument(ICatalog):
     data = zope.schema.Datetime(
         title=_("Date")
     )
+
+
+class IPerson(ICatalogItem):
+    pass
