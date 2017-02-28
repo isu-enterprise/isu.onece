@@ -36,12 +36,30 @@ class ICatalogItemBase(IObject):
     various catalogs. Here we do not
     suppose any relation, only identifier.
     """
-    id = zope.schema.Int(
+    id = zope.schema.Field( # FIXME: Suppose the user must specify.
         title=_("Code"),
         description=_("The identifier denoting "
                       "the record of the catalog"),
         required=True
     )
+
+class IHierarchyItemBase(IObject):
+    """The base of hierarchy composition, e.g.,
+    species, but here we consider subjects connected
+    with is_a relation.
+    """
+    parent_id = zope.schema.Field(  # FIXME: the type is unknown
+        title=_("Parent code"),
+        description=_("The identifier denoting "
+                      "the parent record of the "
+                      "current item of the catalog."),
+        required=False
+    )
+
+# FIXME: Consider it redundant
+#class IHierarchicalCatalogItemBase(ICatalogItemBase, IHierarchyItemBase):
+#    """The basis of hierarchical catalog construction.
+#    """
 
 
 class ICatalogItem(ICatalogItemBase):
@@ -54,6 +72,11 @@ class ICatalogItem(ICatalogItemBase):
                                                "catalog"),
                                 required=True,
                                 constraint=lambda x: x.strip())
+
+class IHierarchicalCatalogItem(ICatalogItem, IHierarchyItemBase):
+    """The item of an hierarchical catalog. The
+    items already have names inherited from ICatalogItem.
+    """
 
 
 class IDocument(ICatalogItem):
