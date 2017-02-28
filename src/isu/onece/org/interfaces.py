@@ -1,12 +1,12 @@
 # Organizational unit related interfaces, in general.
-from isu.onece.interfaces import IObject, ICatalog, IDocument
+from isu.onece.interfaces import IObject, ICatalogItem, IDocument, IPerson
 
 
 class IOrganization(IObject):
     pass
 
 
-class ISpecufication(IDocument):
+class ISpecification(IDocument):
     pass
 
 

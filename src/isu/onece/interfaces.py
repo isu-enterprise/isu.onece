@@ -31,15 +31,24 @@ class IGroup(Interface):
                                    )
 
 
-class ICatalogItem(IObject):
+class ICatalogItemBase(IObject):
+    """A Base interface to create
+    various catalogs. Here we do not
+    suppose any relation, only identifier.
+    """
+    id = zope.schema.Int(
+        title=_("Code"),
+        description=_("The identifier denoting "
+                      "the record of the catalog"),
+        required=True
+    )
+
+
+class ICatalogItem(ICatalogItemBase):
     """A catalog interface that defines
     one default field -
     `name` - identifier of an item
     """
-    id = zope.schema.Integer(
-        title=_("Code")
-    )
-
     name = zope.schema.TextLine(title=_N("Name"),
                                 description=_N("Name of an item of the "
                                                "catalog"),

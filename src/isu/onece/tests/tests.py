@@ -1,5 +1,5 @@
 from zope.interface import implementer
-from isu.onece.interfaces import IReferenceBook
+from isu.onece.interfaces import ICatalogItem
 
 
 class TestReferenceBook:
@@ -11,7 +11,7 @@ class TestReferenceBook:
         pass
 
     def test_minimal(self):
-        @implementer(IReferenceBook)
+        @implementer(ICatalogItem)
         class RefBook(object):
 
             def __init__():
