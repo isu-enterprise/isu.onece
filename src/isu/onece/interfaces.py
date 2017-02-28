@@ -31,19 +31,20 @@ class IGroup(Interface):
                                    )
 
 
-class ICatalogItemBase(IObject):
+class IVocabularyItemBase(IObject):
     """A Base interface to create
     various catalogs. Here we do not
     suppose any relation, only identifier.
     """
-    id = zope.schema.Field( # FIXME: Suppose the user must specify.
+    id = zope.schema.Field(  # FIXME: Suppose the user must specify.
         title=_("Code"),
         description=_("The identifier denoting "
                       "the record of the catalog"),
         required=True
     )
 
-class IHierarchyItemBase(IObject):
+
+class IHierarchyBase(IObject):
     """The base of hierarchy composition, e.g.,
     species, but here we consider subjects connected
     with is_a relation.
@@ -56,13 +57,8 @@ class IHierarchyItemBase(IObject):
         required=False
     )
 
-# FIXME: Consider it redundant
-#class IHierarchicalCatalogItemBase(ICatalogItemBase, IHierarchyItemBase):
-#    """The basis of hierarchical catalog construction.
-#    """
 
-
-class ICatalogItem(ICatalogItemBase):
+class IVocabularyItem(IVocabularyItemBase):
     """A catalog interface that defines
     one default field -
     `name` - identifier of an item
@@ -73,13 +69,8 @@ class ICatalogItem(ICatalogItemBase):
                                 required=True,
                                 constraint=lambda x: x.strip())
 
-class IHierarchicalCatalogItem(ICatalogItem, IHierarchyItemBase):
-    """The item of an hierarchical catalog. The
-    items already have names inherited from ICatalogItem.
-    """
 
-
-class IDocument(ICatalogItem):
+class IDocument(IVocabularyItem):
     """Interface describes documents identified
     by a number in a sequence and an issue data.
     """
@@ -93,5 +84,5 @@ class IDocument(ICatalogItem):
     )
 
 
-class IPerson(ICatalogItem):
+class IPerson(IVocabularyItem):
     pass
