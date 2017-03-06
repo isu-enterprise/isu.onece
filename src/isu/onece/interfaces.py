@@ -69,6 +69,15 @@ class IVocabularyItem(IVocabularyItemBase):
                                 required=True,
                                 constraint=lambda x: x.strip())
 
+class IVocabulary(IObject):
+    """Defines a vocabulary"""
+    terms = zope.schema.List(
+        title=_N("Vocabulary"),
+        description=_N("A vocabulary mapping an id to a name"),
+        value_type = zope.schema.Object(
+            schema = IVocabularyItem
+        )
+    )
 
 class IDocument(IVocabularyItem):
     """Interface describes documents identified
