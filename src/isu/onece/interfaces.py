@@ -97,7 +97,7 @@ class IDocument(IVocabularyItem):
 
 class IRegister(Interface):
 
-    document_list = Attribute("List of documents")
+    document_list = Attribute(_N("List of documents"))
 
     def add(document):
         """Adds a document to the register
