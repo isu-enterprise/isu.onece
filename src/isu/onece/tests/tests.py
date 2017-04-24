@@ -31,7 +31,12 @@ class TestDoc(object):
 
 class TestAccumulatorRegistry:
     def setUp(self):
-        pass
+        d=TestDoc(code=1, 
+            title="Document-1", 
+            number="123424PQ", 
+            date=datetime.date(year=2017, month=4, day=24))
+        self.doc = d
+        self.reg = AccumulatorRegister()
         
     def test_implementation(self):
         assert IAccumulatorRegister.implementedBy(AccumulatorRegister)
@@ -40,8 +45,12 @@ class TestAccumulatorRegistry:
         assert IDocument.implementedBy(TestDoc)
         
     def test_document(self):
-        d=TestDoc(code=1, 
-            title="Document-1", 
-            number="123424PQ", 
-            date=datetime.date(year=2017, month=4, day=24))
-        assert IDocument.providedBy(d)
+        assert IDocument.providedBy(self.doc)
+        
+    def test_add_document(self):
+        self.reg.add(self.doc)
+        assert len(self.reg.documents())>0
+        assert self.reg.documents()[0] == self.doc
+        self.reg.remove(self.doc)
+        assert len(self.reg.documents())==0
+        
