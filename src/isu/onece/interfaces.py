@@ -1,4 +1,4 @@
-from zope.interface import Interface
+from zope.interface import Interface, Attribute
 import zope.schema
 
 
@@ -69,15 +69,17 @@ class IVocabularyItem(IVocabularyItemBase):
                                 required=True,
                                 constraint=lambda x: x.strip())
 
+
 class IVocabulary(IObject):
     """Defines a vocabulary"""
     terms = zope.schema.List(
         title=_N("Vocabulary"),
         description=_N("A vocabulary mapping an id to a name"),
-        value_type = zope.schema.Object(
-            schema = IVocabularyItem
+        value_type=zope.schema.Object(
+            schema=IVocabularyItem
         )
     )
+
 
 class IDocument(IVocabularyItem):
     """Interface describes documents identified
@@ -91,6 +93,27 @@ class IDocument(IVocabularyItem):
     data = zope.schema.Datetime(
         title=_("Date")
     )
+
+
+class IRegister(Interface):
+
+    document_list = Attribute("List of documents")
+
+    def add(document):
+        """Adds a document to the register
+        """
+
+    def remove(document):
+        """Removed a document from the register.
+        """
+
+    def documents(filter=None):
+        """Lists documents conforming the filter
+        """
+
+
+class IAccumulatorRegister(IRegister):
+    pass
 
 
 class IPerson(IVocabularyItem):
