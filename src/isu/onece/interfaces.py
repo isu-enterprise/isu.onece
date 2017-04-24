@@ -93,7 +93,14 @@ class IDocument(IVocabularyItem):
     data = zope.schema.Datetime(
         title=_("Date")
     )
-
+    
+class IFlowDocument(IDocument):
+    receipt = zope.schema.Bool(
+        title = _("receipt"),
+        description= _("Determinates whether the document a receipt (True) or an expense document."),
+        required=True
+        # readonly = true # ? FIXME: Determinate!
+    )
 
 class IRegister(Interface):
 

@@ -27,11 +27,16 @@ class TestDoc(object):
         self.title=title
         self.number=number
         self.date=date
+        
+class TestDocFlow(TestDoc):
+    def __init__(self, code, title, number, date, receipt=True):
+        super(TestDocFlow, self).__init__(code, title, number, date)
+        self.receipt = receipt
     
 
 class TestAccumulatorRegistry:
     def setUp(self):
-        d=TestDoc(code=1, 
+        d=TestDocFlow(code=1, 
             title="Document-1", 
             number="123424PQ", 
             date=datetime.date(year=2017, month=4, day=24))
