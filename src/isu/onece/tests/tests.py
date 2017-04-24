@@ -1,8 +1,9 @@
 from zope.interface import implementer
 from isu.onece.interfaces import IVocabularyItem
-from isu.onece.interfaces import IAccumulatorRegister, IDocument
+from isu.onece.interfaces import IAccumulatorRegister, IDocument, IFlowDocument
 from isu.onece.registers import AccumulatorRegister
 import datetime
+from nose.tools import nottest
 
 
 class TestReferenceBook:
@@ -28,10 +29,14 @@ class TestDoc(object):
         self.number=number
         self.date=date
         
+@implementer(IFlowDocument)
 class TestDocFlow(TestDoc):
     def __init__(self, code, title, number, date, receipt=True):
         super(TestDocFlow, self).__init__(code, title, number, date)
         self.receipt = receipt
+        
+    def get(self, axes=None): # Axis - sing. Axes - plur. 
+        return self.amount
     
 
 class TestAccumulatorRegistry:
@@ -43,6 +48,15 @@ class TestAccumulatorRegistry:
         self.doc = d
         self.reg = AccumulatorRegister()
         
+    def create_doc(self, number, amount, receipt=True):
+        d = TestDocFlow(code=2123, 
+            title="Document-1234", 
+            number="123424PQ1234", 
+            date=datetime.date(year=2017, month=4, day=24),
+            receipt=receipt)
+        d.amount = amount
+        return d
+        
     def test_implementation(self):
         assert IAccumulatorRegister.implementedBy(AccumulatorRegister)
         
@@ -52,10 +66,18 @@ class TestAccumulatorRegistry:
     def test_document(self):
         assert IDocument.providedBy(self.doc)
         
+    @nottest
     def test_add_document(self):
         self.reg.add(self.doc)
         assert len(self.reg.documents())>0
         assert self.reg.documents()[0] == self.doc
         self.reg.remove(self.doc)
         assert len(self.reg.documents())==0
+        
+    def test_accumulator(self):
+        am = 1000.0
+        d = self.create_doc("123", am, True)
+        self.reg.add(d)
+        assert abs(self.reg.balance() - am) < 0.0001
+        
         

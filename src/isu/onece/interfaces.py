@@ -118,7 +118,9 @@ class IRegister(Interface):
 
 
 class IAccumulatorRegister(IRegister):
-    pass
+    def balance(date, axes=None):
+        """Return balance for the axes
+        """
 
 
 class ITurnoverRegister(IRegister):
