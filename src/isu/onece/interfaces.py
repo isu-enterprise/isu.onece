@@ -36,7 +36,7 @@ class IVocabularyItemBase(IObject):
     various catalogs. Here we do not
     suppose any relation, only identifier.
     """
-    id = zope.schema.Field(  # FIXME: Suppose the user must specify.
+    code = zope.schema.Field(  # FIXME: Suppose the user must specify.
         title=_("Code"),
         description=_("The identifier denoting "
                       "the record of the catalog"),
@@ -49,7 +49,7 @@ class IHierarchyBase(IObject):
     species, but here we consider subjects connected
     with is_a relation.
     """
-    parent_id = zope.schema.Field(  # FIXME: the type is unknown
+    parent_code = zope.schema.Field(  # FIXME: the type is unknown
         title=_("Parent code"),
         description=_("The identifier denoting "
                       "the parent record of the "
@@ -63,8 +63,8 @@ class IVocabularyItem(IVocabularyItemBase):
     one default field -
     `name` - identifier of an item
     """
-    name = zope.schema.TextLine(title=_N("Name"),
-                                description=_N("Name of an item of the "
+    title = zope.schema.TextLine(title=_N("Title"),
+                                description=_N("Title of the item of the "
                                                "catalog"),
                                 required=True,
                                 constraint=lambda x: x.strip())
