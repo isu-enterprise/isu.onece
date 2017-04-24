@@ -116,5 +116,9 @@ class IAccumulatorRegister(IRegister):
     pass
 
 
+class ITurnoverRegister(IRegister):
+    pass
+
+
 class IPerson(IVocabularyItem):
     pass
