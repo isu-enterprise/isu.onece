@@ -36,7 +36,7 @@ class IVocabularyItemBase(IObject):
     various catalogs. Here we do not
     suppose any relation, only identifier.
     """
-    id = zope.schema.Field(  # FIXME: Suppose the user must specify.
+    code = zope.schema.Field(  # FIXME: Suppose the user must specify.
         title=_("Code"),
         description=_("The identifier denoting "
                       "the record of the catalog"),
@@ -49,7 +49,7 @@ class IHierarchyBase(IObject):
     species, but here we consider subjects connected
     with is_a relation.
     """
-    parent_id = zope.schema.Field(  # FIXME: the type is unknown
+    parent_code = zope.schema.Field(  # FIXME: the type is unknown
         title=_("Parent code"),
         description=_("The identifier denoting "
                       "the parent record of the "
@@ -63,8 +63,8 @@ class IVocabularyItem(IVocabularyItemBase):
     one default field -
     `name` - identifier of an item
     """
-    name = zope.schema.TextLine(title=_N("Name"),
-                                description=_N("Name of an item of the "
+    title = zope.schema.TextLine(title=_N("Title"),
+                                description=_N("Title of the item of the "
                                                "catalog"),
                                 required=True,
                                 constraint=lambda x: x.strip())
@@ -93,11 +93,16 @@ class IDocument(IVocabularyItem):
     data = zope.schema.Datetime(
         title=_("Date")
     )
-
+    
+class IFlowDocument(IDocument):
+    receipt = zope.schema.Bool(
+        title = _("receipt"),
+        description= _("Determinates whether the document a receipt (True) or an expense document."),
+        required=True
+        # readonly = true # ? FIXME: Determinate!
+    )
 
 class IRegister(Interface):
-
-    document_list = Attribute(_N("List of documents"))
 
     def add(document):
         """Adds a document to the register
@@ -113,7 +118,9 @@ class IRegister(Interface):
 
 
 class IAccumulatorRegister(IRegister):
-    pass
+    def balance(date, axes=None):
+        """Return balance for the axes
+        """
 
 
 class ITurnoverRegister(IRegister):
