@@ -20,7 +20,7 @@ class AccumulatorRegister(object):
         return doc
 
     def _get_amount(self, doc, asxes=None):
-        db = doc.get()
+        db = doc.amount()
         if not doc.receipt:
             db = -db
         return db

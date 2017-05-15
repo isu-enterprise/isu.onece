@@ -35,8 +35,8 @@ class TestDocFlow(TestDoc):
         super(TestDocFlow, self).__init__(code, title, number, date)
         self.receipt = receipt
         
-    def get(self, axes=None): # Axis - sing. Axes - plur. 
-        return self.amount
+    def amount(self, axes=None): # Axis - sing. Axes - plur. 
+        return self._amount
     
 
 class TestAccumulatorRegistry:
@@ -54,7 +54,7 @@ class TestAccumulatorRegistry:
             number="123424PQ1234", 
             date=datetime.date(year=2017, month=4, day=24),
             receipt=receipt)
-        d.amount = amount
+        d._amount = amount
         return d
         
     def test_implementation(self):
