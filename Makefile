@@ -44,7 +44,7 @@ setup-requs: requirements.txt
 	pip install -r requirements.txt
 
 run-tests:
-	nosetests -w src/tests
+	nosetests -w .
 
 tests:	run-tests
 
