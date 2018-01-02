@@ -1,3 +1,3 @@
-nose
-isu.enterprise
+#nose
+#isu.enterprise
 zope.schema
