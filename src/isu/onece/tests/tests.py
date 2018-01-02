@@ -31,15 +31,44 @@ class TestDoc(object):
         self.date = date
 
 
+class IDepartment(IVocabularyItem):
+    """Marker interface denoting departments of an
+    enterprise.
+    """
+
+
+class IKassaRecord(IFlowDocument):
+    department = VocabularyItem(IDepartment)
+    amount = Currency(
+        title="Amount"
+        description="Amount of money"
+    )
+
+
 @implementer(IFlowDocument)
 class TestDocFlow(TestDoc):
     def __init__(self, code, title, number, date, receipt=True):
-        super(TestDocFlow, self).__init__(code, title, number, date)
-        self._amount = 100
+        super(TestDocFlow, self).__init__(code, title,
+                                          number, date, amount)
+        self._amount = amount
         self.receipt = receipt
 
     def amount(self, axes=None):  # Axis - sing. Axes - plur.
         return self._amount
+
+
+class IPurse(IAccumulatorRegister):
+    department = Axis(
+        IKassaRecord.department
+    )
+    amount = Amount(
+        IKassaRecord.amount
+    )
+
+
+@implementer(IPurse)
+class Purse(AccumulatorRegister):
+    pass
 
 
 class TestAccumulatorRegistry:
