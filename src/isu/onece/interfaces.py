@@ -9,9 +9,9 @@ def _N(x):
 _ = _N
 
 
-class IObject(Interface):
-    """This interface defines a root of 1C Enterprise like
-    objects, e.g., Subsystems, Reference Books, Registers (Regystres) (?).
+class IComponent(Interface):
+    """This marker interface defines a root of 1C Enterprise like
+    components, e.g., Subsystems, Reference Books, Registers.
     """
 
 
@@ -31,7 +31,7 @@ class IGroup(Interface):
                                    )
 
 
-class IVocabularyItemBase(IObject):
+class IVocabularyItemBase(Interface):
     """A Base interface to create
     various catalogs. Here we do not
     suppose any relation, only identifier.
@@ -44,7 +44,7 @@ class IVocabularyItemBase(IObject):
     )
 
 
-class IHierarchyBase(IObject):
+class IHierarchyBase(Interface):
     """The base of hierarchy composition, e.g.,
     species, but here we consider subjects connected
     with is_a relation.
@@ -64,13 +64,13 @@ class IVocabularyItem(IVocabularyItemBase):
     `name` - identifier of an item
     """
     title = zope.schema.TextLine(title=_N("Title"),
-                                description=_N("Title of the item of the "
-                                               "catalog"),
-                                required=True,
-                                constraint=lambda x: x.strip())
+                                 description=_N("Title of the item of the "
+                                                "catalog"),
+                                 required=True,
+                                 constraint=lambda x: x.strip())
 
 
-class IVocabulary(IObject):
+class IVocabulary(IComponent):
     """Defines a vocabulary"""
     terms = zope.schema.List(
         title=_N("Vocabulary"),
@@ -81,28 +81,39 @@ class IVocabulary(IObject):
     )
 
 
-class IDocument(IVocabularyItem):
+class IDocument(IVocabularyItem, IComponent):
     """Interface describes documents identified
     by a number in a sequence and an issue data.
     """
 
     number = zope.schema.TextLine(
-        title=_("Number")
+        title=_("Number"),
+        description=_("The unique number of the "
+                      "document at least within "
+                      "the document species."),
+        required=True,
+        constraint=lambda x: x.strip()
     )
 
     data = zope.schema.Datetime(
-        title=_("Date")
+        title=_("Date"),
+        description=_("The issue date of the"
+                      "document."),
+        required=True
     )
-    
+
+
 class IFlowDocument(IDocument):
     receipt = zope.schema.Bool(
-        title = _("receipt"),
-        description= _("Determinates whether the document a receipt (True) or an expense document."),
+        title=_("receipt"),
+        description=_(
+            "Determinates whether the document a receipt (True) or an expense document."),
         required=True
         # readonly = true # ? FIXME: Determinate!
     )
 
-class IRegister(Interface):
+
+class IRegister(IComponent):
 
     def add(document):
         """Adds a document to the register
