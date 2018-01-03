@@ -16,7 +16,7 @@ class Reference(zope.schema.Object):
 
 
 @implementer(IDimesion)
-class Dimention(Reference):
+class Dimension(Reference):
     """Defines the reference to vocabulary record objects
     stored in Documents."""
 
