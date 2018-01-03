@@ -7,6 +7,7 @@ import datetime
 from nose.tools import nottest
 from zope.schema import Float
 from nose.plugins.skip import SkipTest
+from isu.onece import DocumentBase
 
 
 class TestReferenceBook:
@@ -108,11 +109,16 @@ class IKassaRecord(IDocument):
 
 class IPurse(IAccumulatorRegister):
     department = Dimension(
-        IKassaRecord, "department"
+        "department"
     )
     amount = Quantity(
-        IKassaRecord, "amount"
+        "amount"
     )
+    # FIXME: Delay the requisite implementation
+    #@requisite
+    # text=accessor
+    #@requisite
+    # def requisite method.
 
 
 @implementer(IVocabularyItem)
@@ -123,19 +129,9 @@ class Department(object):
 
 
 @implementer(IKassaRecord)
-class KassaRecord(object):
-
-    def _getnumber(self):
-        return self.code
-
-    def _setnumber(self, value):
-        self.code = value
-
-    number = property(_getnumber, _setnumber)
-
+class KassaRecord(DocumantBase):
     def __init__(self, number, title, department, amount):
-        self.number = number
-        self.title = title
+        super(KassaRecord, self).__init__(number, title)
         self.department = department
         self.amount = amount
 
@@ -157,7 +153,7 @@ class TestPurse:
 
     def setUp(self):
         self.doc = self.new_doc(1000)
-        self.purse = Purse()
+        self.purse = Purse(IKassaRecord)
 
     def test_add_document(self):
         self.purse.add(self.doc)

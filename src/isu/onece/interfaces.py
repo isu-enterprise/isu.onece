@@ -10,12 +10,16 @@ def _N(x):
 _ = _N
 
 
-class IDimesion(zope.schema.interfaces.IObject):
+class IDimesion(zope.schema.interfaces.IDottedName):
     """Defines dimensions as a reference to VocabularyItem"""
 
 
-class IQuality(zope.schema.interfaces.IObject):
+class IQuality(zope.schema.interfaces.IDottedName):
     """Defines amounts as reference to a field"""
+
+
+class IRequisite(zope.schema.interfaces.IDottedName):
+    """Defines a requisite for a Register """
 
 
 class IComponent(Interface):
@@ -114,6 +118,21 @@ class IDocument(IVocabularyItem, IComponent):
         required=True
     )
 
+    accepted = zope.schema.Bool(
+        title=_("Accepted"),
+        description=_("Is the document accepted. By default it is not."),
+        readonly=True
+    )
+
+    def accept():
+        """Accept the document as to be valid."""
+
+    def reject():
+        """Make the document to be no longer valid."""
+
+    def update():
+        """The document changed a set of its states."""
+
 
 class IFlowDocument(IDocument):
     receipt = zope.schema.Bool(
@@ -123,6 +142,27 @@ class IFlowDocument(IDocument):
         required=True
         # readonly = true # ? FIXME: Determinate!
     )
+
+
+class IDocumentEvent(Interface):
+    """Marker interface of a general document event."""
+
+
+class IDocumentCreated(IDocumentEvent):
+    """Maker interface denoting the event of a document creation."""
+
+
+class IDocumentAccepted(IDocumentEvent):
+    """Maker interface denoting the event of a document acceptance."""
+
+
+class IDocumentRejected(IDocumentEvent):
+    """Maker interface denoting the event of a document rejection."""
+
+
+class DocumentAboutToBeDeleted(IDocumentEvent):
+    """Maker interface denoting the event of
+    a document about to be removed."""
 
 
 class IRegister(IComponent):

@@ -34,7 +34,9 @@ class RegisterBase(object):
 
 
 class AccumulatorRegisterBase(RegisterBase):
-    pass
+    def __init__(self, interface):
+        super(AccumulatorRegisterBase, self).__init__()
+        self.documentinterface = interface
 
 
 @implementer(IAccumulatorRegister)
