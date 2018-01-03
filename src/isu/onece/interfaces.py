@@ -1,5 +1,6 @@
 from zope.interface import Interface, Attribute
 import zope.schema
+import zope.schema.interfaces
 
 
 def _N(x):
@@ -7,6 +8,14 @@ def _N(x):
 
 
 _ = _N
+
+
+class IDimesion(zope.schema.interfaces.IObject):
+    """Defines dimensions as a reference to VocabularyItem"""
+
+
+class IQuality(zope.schema.interfaces.IObject):
+    """Defines amounts as reference to a field"""
 
 
 class IComponent(Interface):
@@ -61,7 +70,7 @@ class IHierarchyBase(Interface):
 class IVocabularyItem(IVocabularyItemBase):
     """A catalog interface that defines
     one default field -
-    `name` - identifier of an item
+    `title` - identifier of an item
     """
     title = zope.schema.TextLine(title=_N("Title"),
                                  description=_N("Title of the item of the "
@@ -90,12 +99,15 @@ class IDocument(IVocabularyItem, IComponent):
         title=_("Number"),
         description=_("The unique number of the "
                       "document at least within "
-                      "the document species."),
+                      "the document species."
+                      "By default this should be a "
+                      "synonym of the `code` field."
+                      ),
         required=True,
         constraint=lambda x: x.strip()
     )
 
-    data = zope.schema.Datetime(
+    date = zope.schema.Datetime(
         title=_("Date"),
         description=_("The issue date of the"
                       "document."),
