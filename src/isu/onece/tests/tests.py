@@ -35,9 +35,9 @@ class TestDoc(object):
 
 @implementer(IFlowDocument)
 class TestDocFlow(TestDoc):
-    def __init__(self, code, title, number, date, receipt=True):
+    def __init__(self, code, title, number, date, amount, receipt=True):
         super(TestDocFlow, self).__init__(code, title,
-                                          number, date, amount)
+                                          number, date)
         self._amount = amount
         self.receipt = receipt
 
@@ -50,7 +50,9 @@ class TestAccumulatorRegistry:
         d = TestDocFlow(code=1,
                         title="Document-1",
                         number="123424PQ",
-                        date=datetime.date(year=2017, month=4, day=24))
+                        date=datetime.date(year=2017, month=4, day=24),
+                        amount=1000
+                        )
         self.doc = d
         self.reg = AccumulatorRegister()
 
@@ -104,10 +106,10 @@ class IKassaRecord(IDocument):
 
 class IPurse(IAccumulatorRegister):
     department = Dimention(
-        IKassaRecord.department
+        IKassaRecord, "department"
     )
     amount = Quantity(
-        IKassaRecord.amount
+        IKassaRecord, "amount"
     )
 
 
@@ -120,15 +122,14 @@ class Department(object):
 
 @implementer(IKassaRecord)
 class KassaRecord(object):
-    number = property()
 
-    @number.getter
-    def _number(self):
+    def _getnumber(self):
         return self.code
 
-    @number.setter
-    def _number(self, value):
+    def _setnumber(self, value):
         self.code = value
+
+    number = property(_getnumber, _setnumber)
 
     def __init__(self, number, title, department, amount):
         self.number = number
@@ -151,9 +152,10 @@ departments = [dep1, dep2, dep3]
 
 
 class TestPurse:
-    def new_doc(amount):
+    def new_doc(self, amount):
+        global doc_num
         a = str(amount)
-        d = datetime.now()
+        d = datetime.datetime.now()
         title = "{}-{}-{}".format(KassaRecord.__name__, str(d), a)
         num = doc_num
         doc_num += 1
