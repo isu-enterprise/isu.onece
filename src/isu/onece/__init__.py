@@ -2,18 +2,21 @@
 from __future__ import print_function
 
 import zope.schema
-from isu.onece.interfaces import IVocabularyItem, IDimesion, IQuality
+from isu.onece.interfaces import IVocabularyItem, IDimesion, IQuality, IDocument
+from isu.onece.interfaces import IDocumentEvent, IDocumentCreated, IDocumentAccepted
+from isu.onece.interfaces import IDocumentRejected, IDocumentAboutToBeDeleted
 from zope.interface import implementer
 import zope.schema.interfaces
 from isu.onece.registers import AccumulatorRegister
 import zope.event
-from isu.onece import DocumentNotAccepted, DocumentNotRejected
+from isu.onece.exceptions import DocumentNotAccepted, DocumentNotRejected
+
+# FIXME: Is the description of a Register a class or instance?
 
 
-class Reference(zope.schema.Object):
-    def __init__(self, schema, fieldname):
+class Reference(zope.schema.DottedName):
+    def __init__(self, fieldname, **kwargs):
         super(Reference, self).__init__(zope.schema.interfaces.IField)
-        self._schema = schema
         self._fieldname = fieldname
 
 

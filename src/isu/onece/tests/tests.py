@@ -109,10 +109,10 @@ class IKassaRecord(IDocument):
 
 class IPurse(IAccumulatorRegister):
     department = Dimension(
-        "department"
+        fieldname="department"
     )
     amount = Quantity(
-        "amount"
+        fieldname="amount"
     )
     # FIXME: Delay the requisite implementation
     #@requisite

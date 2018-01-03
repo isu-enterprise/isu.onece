@@ -160,7 +160,7 @@ class IDocumentRejected(IDocumentEvent):
     """Maker interface denoting the event of a document rejection."""
 
 
-class DocumentAboutToBeDeleted(IDocumentEvent):
+class IDocumentAboutToBeDeleted(IDocumentEvent):
     """Maker interface denoting the event of
     a document about to be removed."""
 
