@@ -9,6 +9,8 @@ import zope.schema
 from nose.plugins.skip import SkipTest
 from isu.onece import DocumentBase
 import random
+from pprint import pprint
+
 
 _N = str
 
@@ -135,6 +137,11 @@ class KassaRecord(DocumentBase):
         self.department = department
         self.amount = amount
 
+    def __str__(self):
+        return "{}(dep={},amount={} at {})".format(self.__class__.__name__,
+                                                   self.department, self.amount,
+                                                   self.date)
+
 
 class Purse(AccumulatorRegister):
     pass
@@ -145,6 +152,7 @@ doc_num = 1
 dep1 = Department(1, "The first department")
 dep2 = Department(2, "The second department")
 dep3 = Department(3, "The third department")
+
 departments = [dep1, dep2, dep3]
 
 
@@ -158,6 +166,8 @@ class TestPurse:
 
     def test_add_document(self):
         self.purse.add(self.doc)
+        assert self.purse.balance()[0] == 0
+        self.doc.accept()
         assert self.purse.balance()[0] == 1000
 
     def test_add_documents(self):
@@ -166,6 +176,10 @@ class TestPurse:
             am = random.randint(1, 10000)
             self.purse.add(self.new_doc(amount=am))
             s += am
+        # pprint(list(self.purse.documents())[:100])
+        assert self.purse.balance(accepted=False)[0] == s
+        for doc in self.purse.documents(accepted=False):
+            doc.accept()
         assert self.purse.balance()[0] == s
 
     def new_doc(self, amount):

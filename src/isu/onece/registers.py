@@ -121,8 +121,10 @@ class AccumulatorRegister(AccumulatorRegisterBase):
         self._updatebalance(doc, positive=False)
         return doc
 
-    def documents(self, date=None, **kw):
-        yield from self._documents
+    def documents(self, date=None, accepted=True, **kw):
+        for doc in self._documents:
+            if doc.accepted == accepted:
+                yield doc
 
     def balance(self, **kw):
         # TODO: date and dimensions must be supplied explicitly.

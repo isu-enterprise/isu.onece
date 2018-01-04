@@ -63,7 +63,6 @@ class DocumentBase(object):
     def __init__(self, number, date):
         self.date = date
         self.number = number
-        # self.title = title
         self.accepted = False
         self.initialize()
 
