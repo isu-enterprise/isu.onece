@@ -3,34 +3,10 @@ from zope.interface import implementer, implementedBy
 import zope.schema
 from collections import OrderedDict
 from isu.onece.interfaces import IDimesion, IQuality, IRegister
+from isu.onece.interfaces import IDocumentCreated, IDocumentAccepted
+from isu.onece.interfaces import IDocumentRejected, IDocumentAboutToBeDeleted
+from zope.component import getGlobalSiteManager
 
-
-# class RegisterBase(object):
-#     dimensions = OrderedDict()
-#     quantities = OrderedDict()
-#     requsites = OrderedDict()
-#     bound = False
-
-#     def __new__(cls, *args, **kw):
-#         if not cls.bound:
-#             cls.bind()
-#         return object.__new__(cls, *args, **kw)
-
-#     @classmethod
-#     def bind(cls):
-#         for i in implementedBy(cls):
-#             for name, field in zope.schema.getFields(i).items():
-#                 if IDimesion.providedBy(field):
-#                     cls.dimensions[name] = field
-#                 elif IQuality.providedBy(field):
-#                     cls.quantities[name] = field
-#                 else:
-#                     cls.requsites[name] = field
-
-#         assert cls.dimensions and cls.quantities, "empty binding"
-
-#         cls.bound = True
-#         return cls.bound
 
 class RegisterStructure(object):
     """The container of the register structure"""
@@ -40,6 +16,7 @@ class RegisterStructure(object):
         self.dimensions = []
         self.quantities = []
         self.requisites = []
+        self.valid = True
 
     def extend(self, aList, iterable):
         for i in iterable:
@@ -62,6 +39,7 @@ class RegisterBase(object):
 
     def __init__(self, interface):
         self.__structure__ = RegisterStructure(interface)
+        self._registerSubscribers()
 
     def addDimensions(self, *fields):
         rs = self.getStrcture()
@@ -91,6 +69,41 @@ class RegisterBase(object):
                 v = v.code
             # value.append(v)
             yield v
+
+    def onAccepted(self, doc):
+        pass
+
+    def onCreated(self, doc):
+        pass
+
+    def onRejected(self, doc):
+        pass
+
+    def onAboutToBeDeleted(self, doc):
+        pass
+
+    def _registerSubscribers(self):
+        GM = getGlobalSiteManager()
+        rg = GM.registerSubscriptionAdapter
+        i = self.getStrcture().interface
+        rg(self.onCreated, (i,), IDocumentCreated)
+        rg(self.onAccepted, (i,), IDocumentAccepted)
+        rg(self.onRejected, (i,), IDocumentRejected)
+        rg(self.onAboutToBeDeleted, (i,), IDocumentAboutToBeDeleted)
+
+    def __del__(self):
+        self.destroy()
+
+    def destroy(self):
+        if self.getStrcture().valid:
+            GM = getGlobalSiteManager()
+            urg = GM.unregisterSubscriptionAdapter
+            i = self.getStrcture().interface
+            urg(self.onCreated, (i,), IDocumentCreated)
+            urg(self.onAccepted, (i,), IDocumentAccepted)
+            urg(self.onRejected, (i,), IDocumentRejected)
+            urg(self.onAboutToBeDeleted, (i,), IDocumentAboutToBeDeleted)
+            self.getStrcture().valid = False
 
 
 class AccumulatorRegisterBase(RegisterBase):

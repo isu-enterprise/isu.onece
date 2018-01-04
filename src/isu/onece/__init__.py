@@ -5,11 +5,12 @@ import zope.schema
 from isu.onece.interfaces import IRecord, IDimesion, IQuality, IDocument
 from isu.onece.interfaces import IDocumentEvent, IDocumentCreated, IDocumentAccepted
 from isu.onece.interfaces import IDocumentRejected, IDocumentAboutToBeDeleted
-from zope.interface import implementer, directlyProvides
+from zope.interface import implementer, directlyProvides, providedBy
 import zope.schema.interfaces
 from isu.onece.registers import AccumulatorRegister
-import zope.event
+import zope.component.event
 from isu.onece.exceptions import DocumentNotAccepted, DocumentNotRejected
+from zope.component import adapter, subscribers
 
 # FIXME: Is the description of a Register a class or instance?
 
@@ -37,17 +38,9 @@ class Record(zope.schema.Object):
     """Defines a Record field in Documents"""
 
 
-class DocumentEvent(object):
-    """See IDocumentEvent"""
-
-    @property
-    def document(self):
-        return self.context
-
-    def __init__(self, context, *interfaces):
-        self.context = context
-        for i in interfaces:
-            directlyProvides(self, i)
+def notify(required, provided, context=None):
+    sl = subscribers(required, provided, context=context)
+    return sl
 
 
 @implementer(IDocument)
@@ -68,24 +61,22 @@ class DocumentBase(object):
 
     def initialize(self):
         self.accepted = False
-        self._notify_created()
 
     def _notify_created(self):
         # FIXME: How to issue this event after all inits?
-        zope.event.notify(DocumentEvent(self, IDocumentCreated))
+        notify((self,), IDocumentCreated)
 
     def accept(self):
         if not self.accepted:
-            zope.event.notify(DocumentEvent(self, IDocumentAccepted))
+            notify((self,), IDocumentAccepted)
             self.accepted = True
 
     def reject(self):
         if self.accepted:
-            zope.event.notify(DocumentEvent(self, IDocumentRejected))
+            notify((self,), IDocumentRejected)
             self.accepted = False
 
     def __del__(self):
         if self.accepted:
             self.reject()  # FIXME: What to do if it is not rejected?
-        zope.event.notify(DocumentEvent(
-            self, IDocumentAboutToBeDeleted))
+        notify((self,), IDocumentAboutToBeDeleted)

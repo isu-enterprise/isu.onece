@@ -1,6 +1,8 @@
-from zope.interface import implementer
+from zope.interface import implementer, providedBy
+from zope.component import getGlobalSiteManager
 from isu.onece.interfaces import IRecord
 from isu.onece.interfaces import IAccumulatorRegister, IDocument, IFlowDocument
+from isu.onece.interfaces import IDocumentEvent, IDocumentAccepted
 from isu.onece import AccumulatorRegister
 from isu.onece import Record, Dimension, Quantity
 import datetime
@@ -136,15 +138,26 @@ class KassaRecord(DocumentBase):
         super(KassaRecord, self).__init__(number=number, date=date)
         self.department = department
         self.amount = amount
+        self._notify_created()
 
     def __str__(self):
         return "{}(dep={},amount={} at {})".format(self.__class__.__name__,
-                                                   self.department, self.amount,
+                                                   self.department,
+                                                   self.amount,
                                                    self.date)
 
 
 class Purse(AccumulatorRegister):
-    pass
+    def __init__(self, interface):
+        super(Purse, self).__init__(interface)
+        self.total_amount = 0
+
+    def onRejected(self, doc):
+        self.total_amount += doc.amount
+
+    def onAccepted(self, doc):
+        self.total_amount += doc.amount
+        print("Accept:", doc.amount, self.total_amount)
 
 
 doc_num = 1
@@ -164,6 +177,9 @@ class TestPurse:
         p.addDimension("department")
         p.addQuantities("amount")
 
+    def tearDown(self):
+        self.purse.destroy()
+
     def test_add_document(self):
         self.purse.add(self.doc)
         assert self.purse.balance()[0] == 0
@@ -171,16 +187,36 @@ class TestPurse:
         assert self.purse.balance()[0] == 1000
 
     def test_add_documents(self):
+        assert self.purse.total_amount == 0
+        SM = getGlobalSiteManager()
+
+        self.acc_s = 0.0
+
+        def accept_handler(doc):
+            self.acc_s += doc.amount
+            print("Accepted:", doc.amount, self.acc_s)
+
+        SM.registerSubscriptionAdapter(
+            accept_handler, (IDocument,), IDocumentAccepted)
+
         s = 0
-        for i in range(1000):
+        for i in range(10):
             am = random.randint(1, 10000)
-            self.purse.add(self.new_doc(amount=am))
+            doc = self.new_doc(amount=am)
+            # self.purse.add(doc)
             s += am
-        # pprint(list(self.purse.documents())[:100])
-        assert self.purse.balance(accepted=False)[0] == s
-        for doc in self.purse.documents(accepted=False):
             doc.accept()
-        assert self.purse.balance()[0] == s
+        # pprint(list(self.purse.documents())[:100])
+        # assert self.purse.balance(accepted=False)[0] == s
+        for doc in self.purse.documents(accepted=False):
+            assert False
+            doc.accept()
+        # assert self.purse.balance()[0] == s
+        assert self.acc_s == s
+        print(self.purse.total_amount, s)
+        assert self.purse.total_amount == s
+        SM.unregisterSubscriptionAdapter(
+            accept_handler, (IDocument,), IDocumentAccepted)
 
     def new_doc(self, amount):
         global doc_num
