@@ -33,6 +33,8 @@ from isu.onece.interfaces import IDimesion, IQuality, IRegister
 #         return cls.bound
 
 class RegisterStructure(object):
+    """The container of the register structure"""
+
     def __init__(self, interface):
         self.interface = interface
         self.dimensions = []
@@ -52,6 +54,12 @@ class RegisterStructure(object):
 
 @implementer(IRegister)
 class RegisterBase(object):
+    """Implements a simile uncached register functionality.
+
+    The user has the responsibility that the supplied documents will
+    have the reference fields
+    """
+
     def __init__(self, interface):
         self.__structure__ = RegisterStructure(interface)
 
@@ -74,6 +82,15 @@ class RegisterBase(object):
     def _validate(self, obj):
         i = self.getStrcture().interface
         assert i.providedBy(obj), "argument must be an {} provider".format(i)
+
+    def _getValues(self, doc, struct, code=True):
+        #value = []
+        for ref in struct:
+            v = getattr(doc, ref)
+            if code:
+                v = v.code
+            # value.append(v)
+            yield v
 
 
 class AccumulatorRegisterBase(RegisterBase):
@@ -98,25 +115,24 @@ class AccumulatorRegister(AccumulatorRegisterBase):
         self._updatebalance(doc)
         return doc
 
-    def _get_amount(self, doc, asxes=None):
-        db = doc.amount()
-        if not doc.receipt:
-            db = -db
-        return db
-
     def remove(self, doc):
         self._validate(doc)
         self._documents.remove(doc)
         self._updatebalance(doc, positive=False)
         return doc
 
-    def documents(self, filter=None):
-        return self._documents
+    def documents(self, date=None, **kw):
+        yield from self._documents
 
-    def balance(self, date=None, dimensions=None):
+    def balance(self, **kw):
         # TODO: date and dimensions must be supplied explicitly.
         # return self._balance
-        return [0.0]
+        quantities = self.getStrcture().quantities
+        amount = [0.0] * len(quantities)
+        for doc in self.documents(**kw):
+            for i, v in enumerate(self._getValues(doc, quantities, code=False)):
+                amount[i] += v
+        return amount
 
     def _updatebalance(self, doc, positive=True):
         pass

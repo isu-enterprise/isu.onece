@@ -8,6 +8,7 @@ from nose.tools import nottest
 import zope.schema
 from nose.plugins.skip import SkipTest
 from isu.onece import DocumentBase
+import random
 
 _N = str
 
@@ -157,8 +158,15 @@ class TestPurse:
 
     def test_add_document(self):
         self.purse.add(self.doc)
-        assert self.purse.balance()[0] > 0.0
-        pass
+        assert self.purse.balance()[0] == 1000
+
+    def test_add_documents(self):
+        s = 0
+        for i in range(1000):
+            am = random.randint(1, 10000)
+            self.purse.add(self.new_doc(amount=am))
+            s += am
+        assert self.purse.balance()[0] == s
 
     def new_doc(self, amount):
         global doc_num
