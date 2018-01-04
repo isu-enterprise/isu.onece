@@ -151,11 +151,13 @@ class TestPurse:
 
     def setUp(self):
         self.doc = self.new_doc(1000)
-        #self.purse = Purse(IKassaRecord)
+        p = self.purse = Purse(IKassaRecord)
+        p.addDimension("department")
+        p.addQuantities("amount")
 
     def test_add_document(self):
-        # self.purse.add(self.doc)
-        # assert self.purse.balance()[0] > 0.0
+        self.purse.add(self.doc)
+        assert self.purse.balance()[0] > 0.0
         pass
 
     def new_doc(self, amount):
