@@ -44,57 +44,58 @@ class IGroup(Interface):
                                    )
 
 
-class IVocabularyItemBase(Interface):
+class IRecord(Interface):
     """A Base interface to create
-    various catalogs. Here we do not
-    suppose any relation, only identifier.
+    various catalogs.
     """
-    code = zope.schema.Field(  # FIXME: Suppose the user must specify.
+    code = zope.schema.Field(  # FIXME: Suppose the user must specify by redefinition.
         title=_("Code"),
         description=_("The identifier denoting "
-                      "the record of the catalog"),
+                      "the record of a catalog"),
         required=True
     )
 
 
-class IHierarchyBase(Interface):
-    """The base of hierarchy composition, e.g.,
-    species, but here we consider subjects connected
-    with is_a relation.
-    """
-    parent_code = zope.schema.Field(  # FIXME: the type is unknown
-        title=_("Parent code"),
-        description=_("The identifier denoting "
-                      "the parent record of the "
-                      "current item of the catalog."),
-        required=False
-    )
+class IRecordField(zope.schema.Object):
+    """Marker interface of a record reference"""
 
 
-class IVocabularyItem(IVocabularyItemBase):
-    """A catalog interface that defines
-    one default field -
-    `title` - identifier of an item
-    """
+class ITitledEntity(Interface):
     title = zope.schema.TextLine(title=_N("Title"),
-                                 description=_N("Title of the item of the "
-                                                "catalog"),
+                                 description=_N("The title of an Entity"),
                                  required=True,
                                  constraint=lambda x: x.strip())
 
 
-class IVocabulary(IComponent):
-    """Defines a vocabulary"""
-    terms = zope.schema.List(
-        title=_N("Vocabulary"),
-        description=_N("A vocabulary mapping an id to a name"),
-        value_type=zope.schema.Object(
-            schema=IVocabularyItem
-        )
+class IHierarchicalRecord(IRecord):
+    """The base of hierarchy composition, e.g.,
+    species, but here we consider subjects connected
+    with is_a relation.
+    """
+    parent = zope.schema.Object(
+        title=_("Parent code"),
+        description=_("The identifier denoting "
+                      "the parent record of the "
+                      "current item of the catalog."),
+        required=False,
+        schema=IRecord
     )
 
 
-class IDocument(IVocabularyItem, IComponent):
+class ICatalog(zope.interface.common.mapping.IFullMapping):
+    """Defines a catalog as Full mapping.
+    See zope.interface.common.mapping.IFullMapping
+    """
+    # records = zope.schema.List(
+    #     title=_N("Vocabulary"),
+    #     description=_N("A vocabulary mapping an id to a name"),
+    #     value_type=zope.schema.Object(
+    #         schema=IRecord
+    #     )
+    # )
+
+
+class IDocument(IRecord, IComponent):
     """Interface describes documents identified
     by a number in a sequence and an issue data.
     """
@@ -124,6 +125,9 @@ class IDocument(IVocabularyItem, IComponent):
         readonly=True
     )
 
+    def initialize():
+        """Initialize the state of the document"""
+
     def accept():
         """Accept the document as to be valid."""
 
@@ -132,6 +136,9 @@ class IDocument(IVocabularyItem, IComponent):
 
     def update():
         """The document changed a set of its states."""
+
+    def __del__():
+        """Removes the document."""
 
 
 class IFlowDocument(IDocument):
@@ -190,5 +197,5 @@ class ITurnoverRegister(IRegister):
     pass
 
 
-class IPerson(IVocabularyItem):
-    pass
+# class IPerson(IVocabularyItem):
+#     pass

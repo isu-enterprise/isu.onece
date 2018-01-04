@@ -2,10 +2,10 @@
 from __future__ import print_function
 
 import zope.schema
-from isu.onece.interfaces import IVocabularyItem, IDimesion, IQuality, IDocument
+from isu.onece.interfaces import IRecord, IDimesion, IQuality, IDocument
 from isu.onece.interfaces import IDocumentEvent, IDocumentCreated, IDocumentAccepted
 from isu.onece.interfaces import IDocumentRejected, IDocumentAboutToBeDeleted
-from zope.interface import implementer
+from zope.interface import implementer, directlyProvides
 import zope.schema.interfaces
 from isu.onece.registers import AccumulatorRegister
 import zope.event
@@ -15,6 +15,8 @@ from isu.onece.exceptions import DocumentNotAccepted, DocumentNotRejected
 
 
 class Reference(zope.schema.DottedName):
+    """Reference to a record or a data field."""
+
     def __init__(self, fieldname, **kwargs):
         super(Reference, self).__init__(zope.schema.interfaces.IField)
         self._fieldname = fieldname
@@ -31,11 +33,10 @@ class Quantity(Reference):
     """Defines the reference to amounts in a Documents."""
 
 
-class VocabularyItem(zope.schema.Object):
-    """Defines a VocabularyItem fields in Documents"""
+class Record(zope.schema.Object):
+    """Defines a Record field in Documents"""
 
 
-@implementer(IDocumentEvent)
 class DocumentEvent(object):
     """See IDocumentEvent"""
 
@@ -43,28 +44,10 @@ class DocumentEvent(object):
     def document(self):
         return self.context
 
-    def __init__(self, context):
+    def __init__(self, context, *interfaces):
         self.context = context
-
-
-@implementer(IDocumentCreated)
-class DocumentCreated(DocumentEvent):
-    """See IDocumentCreated"""
-
-
-@implementer(IDocumentAccepted)
-class DocumentAccepted(DocumentEvent):
-    """See IDocumentAccepted"""
-
-
-@implementer(IDocumentRejected)
-class DocumentRejected(DocumentEvent):
-    """See IDocumentRejected"""
-
-
-@implementer(IDocumentAboutToBeDeleted)
-class DocumentAboutToBeDeleted(DocumentEvent):
-    """See IDocumentDeleted"""
+        for i in interfaces:
+            directlyProvides(self, i)
 
 
 @implementer(IDocument)
@@ -77,26 +60,33 @@ class DocumentBase(object):
 
     number = property(_getnumber, _setnumber)
 
-    def __init__():
+    def __init__(self, number, date):
+        self.date = date
         self.number = number
-        self.title = title
+        # self.title = title
         self.accepted = False
+        self.initialize()
+
+    def initialize(self):
+        self.accepted = False
+        self._notify_created()
 
     def _notify_created(self):
         # FIXME: How to issue this event after all inits?
-        zope.event.notify(DocumentCreated(self))
+        zope.event.notify(DocumentEvent(self, IDocumentCreated))
 
     def accept(self):
         if not self.accepted:
-            zope.event.notify(DocumentAccepted(self))
+            zope.event.notify(DocumentEvent(self, IDocumentAccepted))
             self.accepted = True
 
     def reject(self):
         if self.accepted:
-            zope.event.notify(DocumentRejected(self))
+            zope.event.notify(DocumentEvent(self, IDocumentRejected))
             self.accepted = False
 
     def __del__(self):
         if self.accepted:
             self.reject()  # FIXME: What to do if it is not rejected?
-        zope.event.notify(DocumentAboutToBeDeleted(self))
+        zope.event.notify(DocumentEvent(
+            self, IDocumentAboutToBeDeleted))
