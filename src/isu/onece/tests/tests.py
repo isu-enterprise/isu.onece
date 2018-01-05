@@ -142,7 +142,7 @@ class KassaRecord(DocumentBase):
         super(KassaRecord, self).__init__(number=number, date=date)
         self.department = department
         self.amount = amount
-        self._notify_created()
+        self.created()
 
     def __str__(self):
         return "{}(dep={},amount={} at {})".format(self.__class__.__name__,
@@ -157,9 +157,11 @@ class Purse(AccumulatorRegister):
         self.total_amount = 0
 
     def onRejected(self, doc):
+        # print("Rej:", doc)
         self.total_amount -= doc.amount
 
     def onAccepted(self, doc):
+        # print("Acc:", doc)
         self.total_amount += doc.amount
 
 
@@ -193,12 +195,15 @@ class TestPurse:
         assert self.purse.total_amount == 0
         SM = getGlobalSiteManager()
 
+        s = 0
         for i in range(10):
             am = random.randint(1, 10000)
             doc = self.new_doc(amount=am)
+            s += am
             doc.accept()
 
-        assert self.purse.total_amount == doc.amount
+        assert self.purse.total_amount == s
+        s1 = s
 
         self.acc_s = 0
 
@@ -223,7 +228,7 @@ class TestPurse:
 
         # assert self.purse.balance()[0] == s
         assert self.acc_s == s
-        assert self.purse.total_amount == s
+        assert self.purse.total_amount == s + s1
 
     def new_doc(self, amount):
         global doc_num
