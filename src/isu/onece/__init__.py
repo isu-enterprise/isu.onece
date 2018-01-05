@@ -62,21 +62,29 @@ class DocumentBase(object):
     def initialize(self):
         self.accepted = False
 
-    def _notify_created(self):
-        # FIXME: How to issue this event after all inits?
+    def created(self):
+        """Signal to the system, that the document
+        structure is correct."""
         notify((self,), IDocumentCreated)
 
     def accept(self):
+        """Notify the system that the document becoming
+        valid and its data can be used in accounting calculations.
+        """
         if not self.accepted:
             notify((self,), IDocumentAccepted)
             self.accepted = True
 
     def reject(self):
+        """Notify the system that the document is no longer
+        valid and its data should not be accounted."""
         if self.accepted:
             notify((self,), IDocumentRejected)
             self.accepted = False
 
-    def __del__(self):
+    def delete(self):
+        """Notify the system, that the document data
+        will be removed from warehouses."""
         if self.accepted:
             self.reject()  # FIXME: What to do if it is not rejected?
         notify((self,), IDocumentAboutToBeDeleted)
