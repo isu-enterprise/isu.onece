@@ -16,7 +16,7 @@ class RegisterStructure(object):
         self.dimensions = []
         self.quantities = []
         self.requisites = []
-        self.valid = True
+        self.subscibers = []
 
     def extend(self, aList, iterable):
         for i in iterable:
@@ -27,6 +27,35 @@ class RegisterStructure(object):
             if i not in aList:
                 aList.append(i)
         return aList
+
+    EVENTS = [IDocumentCreated, IDocumentAccepted,
+              IDocumentRejected, IDocumentAboutToBeDeleted]
+
+    def subscribe(self, register):
+        if self.subscibers:
+            return
+        GM = getGlobalSiteManager()
+        rg = GM.registerSubscriptionAdapter
+        i = self.interface
+        r = register
+        self.subscibers = [r.onCreated, r.onAccepted,
+                           r.onRejected, r.onAboutToBeDeleted]
+        for method, event in zip(self.subscibers, self.__class__.EVENTS):
+            rg(method, (i,), event)
+
+    def unsubscribe(self, register):
+        if not self.subscibers:
+            return
+        GM = getGlobalSiteManager()
+        urg = GM.unregisterSubscriptionAdapter
+        i = self.interface
+        r = register
+        for method, event in zip(self.subscibers, self.__class__.EVENTS):
+            urg(method, (i,), event)
+        self.subscibers = []
+
+
+tmp = None
 
 
 @implementer(IRegister)
@@ -83,27 +112,14 @@ class RegisterBase(object):
         pass
 
     def _registerSubscribers(self):
-        GM = getGlobalSiteManager()
-        rg = GM.registerSubscriptionAdapter
-        i = self.getStrcture().interface
-        rg(self.onCreated, (i,), IDocumentCreated)
-        rg(self.onAccepted, (i,), IDocumentAccepted)
-        rg(self.onRejected, (i,), IDocumentRejected)
-        rg(self.onAboutToBeDeleted, (i,), IDocumentAboutToBeDeleted)
+        self.getStrcture().subscribe(self)
 
     def __del__(self):
         self.destroy()
 
     def destroy(self):
-        if self.getStrcture().valid:
-            GM = getGlobalSiteManager()
-            urg = GM.unregisterSubscriptionAdapter
-            i = self.getStrcture().interface
-            urg(self.onCreated, (i,), IDocumentCreated)
-            urg(self.onAccepted, (i,), IDocumentAccepted)
-            urg(self.onRejected, (i,), IDocumentRejected)
-            urg(self.onAboutToBeDeleted, (i,), IDocumentAboutToBeDeleted)
-            self.getStrcture().valid = False
+        self._documents = []
+        self.getStrcture().unsubscribe(self)
 
 
 class AccumulatorRegisterBase(RegisterBase):

@@ -153,11 +153,10 @@ class Purse(AccumulatorRegister):
         self.total_amount = 0
 
     def onRejected(self, doc):
-        self.total_amount += doc.amount
+        self.total_amount -= doc.amount
 
     def onAccepted(self, doc):
         self.total_amount += doc.amount
-        print("Accept:", doc.amount, self.total_amount)
 
 
 doc_num = 1
@@ -190,33 +189,37 @@ class TestPurse:
         assert self.purse.total_amount == 0
         SM = getGlobalSiteManager()
 
-        self.acc_s = 0.0
+        for i in range(10):
+            am = random.randint(1, 10000)
+            doc = self.new_doc(amount=am)
+            doc.accept()
+
+        assert self.purse.total_amount == doc.amount
+
+        self.acc_s = 0
 
         def accept_handler(doc):
             self.acc_s += doc.amount
-            print("Accepted:", doc.amount, self.acc_s)
 
         SM.registerSubscriptionAdapter(
             accept_handler, (IDocument,), IDocumentAccepted)
 
         s = 0
+
+        docs = []
         for i in range(10):
             am = random.randint(1, 10000)
             doc = self.new_doc(amount=am)
-            # self.purse.add(doc)
+            docs.append(doc)
             s += am
             doc.accept()
-        # pprint(list(self.purse.documents())[:100])
-        # assert self.purse.balance(accepted=False)[0] == s
-        for doc in self.purse.documents(accepted=False):
-            assert False
-            doc.accept()
-        # assert self.purse.balance()[0] == s
-        assert self.acc_s == s
-        print(self.purse.total_amount, s)
-        assert self.purse.total_amount == s
+
         SM.unregisterSubscriptionAdapter(
             accept_handler, (IDocument,), IDocumentAccepted)
+
+        # assert self.purse.balance()[0] == s
+        assert self.acc_s == s
+        assert self.purse.total_amount == s
 
     def new_doc(self, amount):
         global doc_num
