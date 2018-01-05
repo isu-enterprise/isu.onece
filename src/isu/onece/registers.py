@@ -6,6 +6,7 @@ from isu.onece.interfaces import IDimesion, IQuality, IRegister
 from isu.onece.interfaces import IDocumentCreated, IDocumentAccepted
 from isu.onece.interfaces import IDocumentRejected, IDocumentAboutToBeDeleted
 from zope.component import getGlobalSiteManager
+import asq
 
 
 class RegisterStructure(object):
@@ -121,38 +122,35 @@ class RegisterBase(object):
         self.getStrcture().unsubscribe(self)
 
 
-class AccumulatorRegisterBase(RegisterBase):
-    pass
+class SimpleRegisterBase(RegisterBase):
+    def __init__(self, interface):
+        super(SimpleRegisterBase, self).__init__(interface)
+        self.documents = OrderedDict()
+        self.accepted = OrderedDict()
+
+    def onCreated(self, doc):
+        self.documents[doc.code] = doc
+
+    def onAccepted(self, doc):
+        self.accepted[doc.code] = doc
+
+    def onRejected(self, doc):
+        del self.accepted[doc.code]
+
+    def onAboutToBeDeleted(self, doc):
+        del self.documents[doc.code]
+
+    def query(self, accepted=True):
+        if accepted:
+            q = asq.query(self.accepted)
+        return q
 
 
 @implementer(IAccumulatorRegister)
-class AccumulatorRegister(AccumulatorRegisterBase):
+class AccumulatorRegister(SimpleRegisterBase):
     """Accumulates amounts by means of
     accumulating document's data.
     """
-
-    def __init__(self, interface):
-        super(AccumulatorRegister, self).__init__(interface)
-        self._documents = []
-
-    def add(self, doc):
-        self._validate(doc)
-        self._documents.append(doc)
-        # TODO: request all transactions
-        # self._balance += self._get_amount(doc)
-        self._updatebalance(doc)
-        return doc
-
-    def remove(self, doc):
-        self._validate(doc)
-        self._documents.remove(doc)
-        self._updatebalance(doc, positive=False)
-        return doc
-
-    def documents(self, date=None, accepted=True, **kw):
-        for doc in self._documents:
-            if doc.accepted == accepted:
-                yield doc
 
     def balance(self, **kw):
         # TODO: date and dimensions must be supplied explicitly.
