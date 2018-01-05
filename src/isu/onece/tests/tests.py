@@ -131,6 +131,10 @@ class Department(object):
         self.code = code
         self.title = title
 
+    def __str__(self):
+        return "{}({}={})".format(self.__class__.__name__,
+                                  self.code, self.title)
+
 
 @implementer(IKassaRecord)
 class KassaRecord(DocumentBase):

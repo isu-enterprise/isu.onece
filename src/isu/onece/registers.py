@@ -118,7 +118,6 @@ class RegisterBase(object):
         self.destroy()
 
     def destroy(self):
-        self._documents = []
         self.getStrcture().unsubscribe(self)
 
 
@@ -167,3 +166,6 @@ class AccumulatorRegister(AccumulatorRegisterBase):
 
     def _updatebalance(self, doc, positive=True):
         pass
+
+    def destroy(self):
+        self.getStrcture().unsubscribe(self)
