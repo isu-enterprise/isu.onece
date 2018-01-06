@@ -67,6 +67,7 @@ class StructuredRegisterBase(object):
     """
 
     __structure__type__ = None
+    __utility_name__ = None
 
     def __init__(self, interface=None):
         stype = self.__class__.__structure__type__
@@ -80,6 +81,16 @@ class StructuredRegisterBase(object):
 
     def bind(self, object_or_interface):
         self.getStrcture().subscribe(self, object_or_interface)
+        uname = self.__class__.__utility_name__
+        if uname is not None:
+            GM = getGlobalSiteManager()
+            GM.registerUtility(self,
+                               self.recordInterface,
+                               name=uname)
+
+    def getRecordInterface(self):
+        return self.getStrcture().interface
+    recordInterface = property(getRecordInterface)
 
     def getStrcture(self):
         return self.__structure__
@@ -94,18 +105,26 @@ class StructuredRegisterBase(object):
         self.destroy()
 
     def destroy(self):
+        uname = self.__class__.__utility_name__
+        if uname is not None:
+            GM = getGlobalSiteManager()
+            GM.unregisterUtility(self,
+                                 self.recordInterface,
+                                 name=uname)
         self.getStrcture().unsubscribe(self)
 
 
 @implementer(IRecordRegister)
 class RecordRegisterBase(StructuredRegisterBase):
     __structure__type__ = RecordRegisterStructure
+    __utility_name__ = 'record-register'
 
 
 @implementer(IDocumentRegister)
 class DocumentRegisterBase(RecordRegisterBase):
 
     __structure__type__ = DocumentRegisterStructure
+    __utility_name__ = 'document-register'
 
 
 class SimpleRecordRegister(RecordRegisterBase):
@@ -133,7 +152,11 @@ class SimpleRecordRegister(RecordRegisterBase):
         return self.records[k]
 
 
+@implementer(IDocumentRegister)
 class SimpleDocumentRegister(SimpleRecordRegister):
+
+    __structure__type__ = DocumentRegisterStructure
+    __utility_name__ = 'document-register'
 
     def __init__(self, interface):
         super(SimpleDocumentRegister, self).__init__(interface)

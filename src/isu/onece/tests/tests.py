@@ -1,12 +1,12 @@
 from zope.interface import implementer, providedBy
-from zope.component import getGlobalSiteManager
+from zope.component import getGlobalSiteManager, getUtility
 from isu.onece.interfaces import IRecord
 from isu.onece.register.interfaces import IAccumulatorRegister
 from isu.onece.interfaces import IDocument, IFlowDocument
 from isu.onece.interfaces import IDocumentEvent, IDocumentAccepted
 # from isu.onece import AccumulatorRegister
 from isu.onece.register import SimpleRecordRegister, SimpleDocumentRegister
-from isu.onece.register import AccumulatorRegister
+from isu.onece.register import SimpleAccumulatorRegister
 from isu.onece import Record, Dimension, Quantity, RecordRef
 import datetime
 from nose.tools import nottest
@@ -59,7 +59,7 @@ class TestAccumulatorRegistry:
                         amount=1000
                         )
         self.doc = d
-        self.reg = AccumulatorRegister()
+        self.reg = SimpleAccumulatorRegister()
 
     def create_doc(self, number, amount, receipt=True):
         d = TestDocFlow(
@@ -72,7 +72,7 @@ class TestAccumulatorRegistry:
         return d
 
     def test_implementation(self):
-        assert IAccumulatorRegister.implementedBy(AccumulatorRegister)
+        assert IAccumulatorRegister.implementedBy(SimpleAccumulatorRegister)
 
     def test_document_impl(self):
         assert IDocument.implementedBy(TestDoc)
@@ -163,7 +163,7 @@ class PurseRecords(SimpleDocumentRegister):
     pass
 
 
-class Purse(AccumulatorRegister):
+class Purse(SimpleAccumulatorRegister):
     def __init__(self, interface):
         super(Purse, self).__init__(interface)
         self.total_amount = 0
@@ -171,35 +171,46 @@ class Purse(AccumulatorRegister):
     def onDocumentRejected(self, doc):
         # print("Rej:", doc)
         self.total_amount -= doc.amount
+        super(Purse, self).onDocumentRejected(doc)
 
     def onDocumentAccepted(self, doc):
         # print("Acc:", doc)
         self.total_amount += doc.amount
+        super(Purse, self).onDocumentAccepted(doc)
 
-    def onRecordCreated(self):
+    def onRecordCreated(self, rec):
+        we
         pass
 
-    def onRecordAboutToBeDeleted(self):
+    def onRecordAboutToBeDeleted(self, rec):
+        er
         pass
 
 
 class TestPurse:
 
     def setUp(self):
-        self.records = PurseRecords(ICashRecord)
-        self.doc = self.new_doc(1000)
+        self.docs = PurseRecords(ICashRecord)
         p = self.purse = Purse(ICashRecord)
         p.addDimension("department")
         p.addQuantities("amount")
 
+        self.doc = self.new_doc(1000, dep=dep1)
+
     def tearDown(self):
         self.purse.destroy()
 
+    def test_utilities(self):
+        docs = self.docs
+        docs2 = getUtility(ICashRecord, name="document-register")
+        assert docs is docs2
+
     def test_add_document(self):
 
-        assert self.purse.balance()[0] == 0
+        assert self.purse.value() == {}
         self.doc.accept()
-        assert self.purse.balance()[0] == 0  # FIXME: This is wrong
+        assert self.purse.value() == {(1,): (1000,)}
+        assert self.purse.value((dep1,))[0] == 1000  # FIXME: This is wrong
 
     def test_add_documents(self):
         assert self.purse.total_amount == 0
@@ -240,13 +251,14 @@ class TestPurse:
         assert self.acc_s == s
         assert self.purse.total_amount == s + s1
 
-    def new_doc(self, amount):
+    def new_doc(self, amount, dep=None):
         global doc_num
         a = str(amount)
         d = datetime.datetime.now()
         num = doc_num
         doc_num += 1
-        dep = departments[doc_num % len(departments)]
+        if dep is None:
+            dep = departments[doc_num % len(departments)]
         date = datetime.datetime.utcnow()
         return CashRecord(num, date, dep, amount)
 
