@@ -6,7 +6,7 @@ from isu.onece.interfaces import IDimesion, IQuality, IRegister
 from isu.onece.interfaces import IDocumentCreated, IDocumentAccepted
 from isu.onece.interfaces import IDocumentRejected, IDocumentAboutToBeDeleted
 from zope.component import getGlobalSiteManager
-import asq
+from asq.initiators import query
 
 
 class RegisterStructure(object):
@@ -142,7 +142,7 @@ class SimpleRegisterBase(RegisterBase):
 
     def query(self, accepted=True):
         if accepted:
-            q = asq.query(self.accepted)
+            q = query(self.accepted)
         return q
 
 
@@ -157,7 +157,7 @@ class AccumulatorRegister(SimpleRegisterBase):
         # return self._balance
         quantities = self.getStrcture().quantities
         amount = [0.0] * len(quantities)
-        for doc in self.documents(**kw):
+        for doc in self.query(**kw):
             for i, v in enumerate(self._getValues(doc, quantities, code=False)):
                 amount[i] += v
         return amount
