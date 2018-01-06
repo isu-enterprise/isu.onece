@@ -1,6 +1,7 @@
 from zope.interface import Interface, Attribute
 import zope.schema
 import zope.schema.interfaces
+import zope.interface.interfaces
 
 
 def _N(x):
@@ -8,18 +9,6 @@ def _N(x):
 
 
 _ = _N
-
-
-class IDimesion(zope.schema.interfaces.IDottedName):
-    """Defines dimensions as a reference to VocabularyItem"""
-
-
-class IQuality(zope.schema.interfaces.IDottedName):
-    """Defines amounts as reference to a field"""
-
-
-class IRequisite(zope.schema.interfaces.IDottedName):
-    """Defines a requisite for a Register """
 
 
 class IComponent(Interface):
@@ -56,7 +45,7 @@ class IRecord(Interface):
     )
 
 
-class IRecordField(zope.schema.Object):
+class IRecordRef(zope.schema.interfaces.IObject):
     """Marker interface of a record reference"""
 
 
@@ -125,9 +114,6 @@ class IDocument(IRecord, IComponent):
         readonly=True
     )
 
-    def initialize():
-        """Initialize the state of the document"""
-
     def accept():
         """Accept the document as to be valid."""
 
@@ -151,50 +137,30 @@ class IFlowDocument(IDocument):
     )
 
 
-class IDocumentEvent(Interface):
-    """Marker interface of a general document event."""
+class IRecordEvent(zope.interface.interfaces.IObjectEvent):
+    """Marker interface of a general record event."""
 
 
-class IDocumentCreated(IDocumentEvent):
-    """Maker interface denoting the event of a document creation."""
+class IRecordCreated(IRecordEvent):
+    """Marker interface denoting the event of a record creation."""
+
+
+class IRecordAboutToBeDeleted(IRecordEvent):
+    """Marker interface denoting the event of
+    a record about to be removed."""
+
+
+class IDocumentEvent(IRecordEvent):
+    """Marker interface that is the top of document event
+    hierarchy"""
 
 
 class IDocumentAccepted(IDocumentEvent):
-    """Maker interface denoting the event of a document acceptance."""
+    """Marker interface denoting the event of a document acceptance."""
 
 
 class IDocumentRejected(IDocumentEvent):
-    """Maker interface denoting the event of a document rejection."""
-
-
-class IDocumentAboutToBeDeleted(IDocumentEvent):
-    """Maker interface denoting the event of
-    a document about to be removed."""
-
-
-class IRegister(IComponent):
-
-    def add(document):
-        """Adds a document to the register
-        """
-
-    def remove(document):
-        """Removed a document from the register.
-        """
-
-    def documents(filter=None):
-        """Lists documents conforming the filter
-        """
-
-
-class IAccumulatorRegister(IRegister):
-    def balance(date, axes=None):
-        """Return balance for the axes
-        """
-
-
-class ITurnoverRegister(IRegister):
-    pass
+    """Marker interface denoting the event of a document rejection."""
 
 
 # class IPerson(IVocabularyItem):

@@ -1,10 +1,13 @@
 from zope.interface import implementer, providedBy
 from zope.component import getGlobalSiteManager
 from isu.onece.interfaces import IRecord
-from isu.onece.interfaces import IAccumulatorRegister, IDocument, IFlowDocument
+from isu.onece.register.interfaces import IAccumulatorRegister
+from isu.onece.interfaces import IDocument, IFlowDocument
 from isu.onece.interfaces import IDocumentEvent, IDocumentAccepted
-from isu.onece import AccumulatorRegister
-from isu.onece import Record, Dimension, Quantity
+# from isu.onece import AccumulatorRegister
+from isu.onece.register import SimpleRecordRegister, SimpleDocumentRegister
+from isu.onece.register import AccumulatorRegister
+from isu.onece import Record, Dimension, Quantity, RecordRef
 import datetime
 from nose.tools import nottest
 import zope.schema
@@ -103,43 +106,48 @@ class IDepartment(IRecord):
                                  constraint=lambda x: x.strip())
 
 
-class IKassaRecord(IDocument):
-    department = Record(IDepartment)
+class ICashRecord(IDocument):
+    department = RecordRef(IDepartment)
     amount = zope.schema.Float(
         title="Amount",
         description="Amount of money"
     )
 
 
-# class IPurse(IAccumulatorRegister):
-#     department = Dimension(
-#         fieldname="department"
-#     )
-#     amount = Quantity(
-#         fieldname="amount"
-#     )
-#     # FIXME: Delay the requisite implementation
-#     #@requisite
-#     # text=accessor
-#     #@requisite
-#     # def requisite method.
-
-
 @implementer(IDepartment)
-class Department(object):
+class Department(Record):
     def __init__(self, code, title):
         self.code = code
         self.title = title
+        self.created()
 
     def __str__(self):
         return "{}({}={})".format(self.__class__.__name__,
                                   self.code, self.title)
 
 
-@implementer(IKassaRecord)
-class KassaRecord(DocumentBase):
+doc_num = 1
+
+
+departments = SimpleRecordRegister(IDepartment)
+
+dep3 = Department(3, "The third department")
+dep2 = Department(2, "The second department")
+dep1 = Department(1, "The first department")
+
+
+class TestRecordRegister:
+    def setUp(self):
+        self.cachbox = SimpleRecordRegister(ICashRecord)
+
+    def tearDown(self):
+        self.cachbox.destroy()
+
+
+@implementer(ICashRecord)
+class CashRecord(DocumentBase):
     def __init__(self, number, date, department, amount):
-        super(KassaRecord, self).__init__(number=number, date=date)
+        super(CashRecord, self).__init__(number=number, date=date)
         self.department = department
         self.amount = amount
         self.created()
@@ -151,34 +159,36 @@ class KassaRecord(DocumentBase):
                                                    self.date)
 
 
+class PurseRecords(SimpleDocumentRegister):
+    pass
+
+
 class Purse(AccumulatorRegister):
     def __init__(self, interface):
         super(Purse, self).__init__(interface)
         self.total_amount = 0
 
-    def onRejected(self, doc):
+    def onDocumentRejected(self, doc):
         # print("Rej:", doc)
         self.total_amount -= doc.amount
 
-    def onAccepted(self, doc):
+    def onDocumentAccepted(self, doc):
         # print("Acc:", doc)
         self.total_amount += doc.amount
 
+    def onRecordCreated(self):
+        pass
 
-doc_num = 1
-
-dep1 = Department(1, "The first department")
-dep2 = Department(2, "The second department")
-dep3 = Department(3, "The third department")
-
-departments = [dep1, dep2, dep3]
+    def onRecordAboutToBeDeleted(self):
+        pass
 
 
 class TestPurse:
 
     def setUp(self):
+        self.records = PurseRecords(ICashRecord)
         self.doc = self.new_doc(1000)
-        p = self.purse = Purse(IKassaRecord)
+        p = self.purse = Purse(ICashRecord)
         p.addDimension("department")
         p.addQuantities("amount")
 
@@ -238,7 +248,7 @@ class TestPurse:
         doc_num += 1
         dep = departments[doc_num % len(departments)]
         date = datetime.datetime.utcnow()
-        return KassaRecord(num, date, dep, amount)
+        return CashRecord(num, date, dep, amount)
 
     def test_doc(self):
         amount = 100
